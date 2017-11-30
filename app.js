@@ -53,22 +53,30 @@ app.get('/v1/visitors', function(req, res, next){
 });
 app.post('/v1/visitors', function(req, res, next) {  
   
-  const visitor = Visitors.create(req.body.firstName, req.body.lastName, req.body.companyName, req.body.mobile);
+  const visitor = Visitors.create(req.body.firstName, req.body.lastName, req.body.companyName, req.body.mobile, Checkins.signoutCode);
+  
   res.json({
     statusCode: 200,
     message: "Successfully created visitor",
-    data: visitor
+    data: Object.assign({}, visitor, {token: null})
   });
 });
 
-app.post('/v1/visitors/auth', function(req, res, next) {
-  const exist = Visitors.exist(req.body.mobile);
+app.post('/v1/visitors/auth', function(req, res, next) {  
+  let exists = true;
   
+  let visitor = Visitors.findByMobile(req.body.mobile);
+  if (!visitor) {
+    exists = false;
+    visitor = Visitors.create("", "", "", req.body.mobile, Checkins.signoutCode);
+  }
+  
+  exists = Visitors.exist(req.body.mobile);
   res.json({
     statusCode: 200,
     message: "The visitor sign-in code is not required.",
     data: {
-      found: exist,
+      found: exists,
       verificationType: null
     }
   });
@@ -84,6 +92,7 @@ app.post('/v1/visitors/find', function(req, res, next) {
 });
 
 app.put('/v1/visitors/:id', function(req, res, next) {  
+
   const visitor = Visitors.findByIdAndToken(parseInt(req.params.id), req.body.mobile, req.body.token);
   if (visitor){
     res.json({

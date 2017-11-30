@@ -20,10 +20,10 @@ class Visitors {
     return this.data;
   }
 
-  create(firstName, lastName, companyName, mobile) {
+  create(firstName, lastName, companyName, mobile, token) {
     let visitor = this.findByMobile(mobile);
     if (visitor) {
-      return this.update(visitor, firstName, lastName, companyName);
+      return this.update(visitor, firstName, lastName, companyName, token);
     }
 
     const nextId = this.nextId;
@@ -37,6 +37,7 @@ class Visitors {
       note: null,
       mobile: mobile.substring(3),
       countryCode,
+      token,
       createdAt: Date.now(),
       updatedAt: Date.now(),
       deletedAt: null
@@ -45,10 +46,13 @@ class Visitors {
     return visitor;
   }
 
-  update(visitor, firstName, lastName, companyName) {    
+  update(visitor, firstName, lastName, companyName, token) {    
     visitor.firstName = firstName;
     visitor.lastName = lastName;
     visitor.companyName = companyName;
+    if (token) {
+      visitor.token = token;
+    }    
     visitor.updatedAt = Date.now();
     return visitor;
   }
@@ -65,12 +69,14 @@ class Visitors {
 
   findByToken(mobile, token) {
     return this.visitors.find(visitor => 
-      ((visitor.countryCode + visitor.mobile) === mobile));
+      ((visitor.countryCode + visitor.mobile) === mobile && visitor.token === token));
   }
 
   findByIdAndToken(id, mobile, token) {
+    
     return this.visitors.find(visitor => 
-      (visitor.id == id && (visitor.countryCode + visitor.mobile) === mobile));
+      (visitor.id == id && ((mobile.indexOf('+') === 0) ? visitor.countryCode : '') + visitor.mobile === mobile && visitor.token === token));
+    
   }
 
   exist(mobile) {
