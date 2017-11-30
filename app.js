@@ -18,7 +18,7 @@ app.set('view engine', 'jade');
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -28,6 +28,17 @@ app.use('/users', users);
 const Visitors = require('./data/visitors');
 const Hosts = require('./data/hosts');
 const Checkins = require('./data/checkins');
+
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");  
+  res.header("access-control-allow-headers", 'apiKey,Content-Type');
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,OPTIONS,DELETE");
+  if (req.method === 'OPTIONS') {    
+    res.status(200);
+    return res.end();
+  }  
+  next();
+});
 
 app.get('/v1/hosts', function(req, res, next) {
   res.json({
@@ -52,6 +63,7 @@ app.post('/v1/visitors', function(req, res, next) {
 
 app.post('/v1/visitors/auth', function(req, res, next) {
   const exist = Visitors.exist(req.body.mobile);
+  
   res.json({
     statusCode: 200,
     message: "The visitor sign-in code is not required.",
@@ -63,7 +75,7 @@ app.post('/v1/visitors/auth', function(req, res, next) {
 });
 
 app.post('/v1/visitors/find', function(req, res, next) {
-  Visitors.findByToken(req.body.mobile, req.body.token);
+  const visitor =Visitors.findByToken(req.body.mobile, req.body.token);
   res.json({
     statusCode: visitor ? 200 : 404,
     message: "Successfully located visitor",
@@ -91,7 +103,9 @@ app.put('/v1/visitors/:id', function(req, res, next) {
     });
   }
 });
-
+app.get('/v1/checkins', function(req, res, next) {
+  res.json(Checkins.checkins);
+});
 app.post('/v1/checkins', function(req, res, next) {
   const checkin = Checkins.checkin(req.body.visitorId, req.body.hostId, req.body.timeIn);  
   if (checkin) {

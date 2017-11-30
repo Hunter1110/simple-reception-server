@@ -2,7 +2,7 @@ class Visitors {
   constructor() {
     this.data = [];
     this.nextIdValue = 0;
-    this.init();
+    //this.init();
   }
 
   init() {
