@@ -36,6 +36,10 @@ class Checkins {
       return null;
     }
     const id = this.nextId;
+    let signoutCode = this.signoutCode;
+    while (this.checkins.find(checkin => (!checkin.timeOut && checkin.signoutCode === signoutCode))) {
+      signoutCode = this.signoutCode;
+    }
     const checkin = {
       id,
       instanceId: id,
@@ -43,7 +47,7 @@ class Checkins {
       visitorId: visitorId,
       checkinReasonId: null,
       note: null,
-      signoutCode: this.signoutCode,
+      signoutCode,
       timeIn: timeIn,
       timeOut: null,
       createdAt: Date.now(),
