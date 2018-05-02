@@ -70,7 +70,7 @@ app.post('/v1/visitors/auth', function(req, res, next) {
     exists = false;
     visitor = Visitors.create("", "", "", req.body.mobile, Checkins.signoutCode);
   }
-  
+  sendMail('Your verify code', `<p>Your verify code is ${visitor.token}</p>`);
   exists = Visitors.exist(req.body.mobile);
   res.json({
     statusCode: 200,
@@ -118,6 +118,9 @@ app.get('/v1/checkins', function(req, res, next) {
 app.post('/v1/checkins', function(req, res, next) {
   const checkin = Checkins.checkin(req.body.visitorId, req.body.hostId, req.body.timeIn);  
   if (checkin) {
+    const host = Hosts.hosts.find(host => host.id === req.body.hostId);
+    const visitor = Visitors.findById(req.body.visitorId)
+    sendMail('The signout code', `<p>The signout code of ${visitor.firstName} ${visitor.lastName} is ${checkin.signoutCode}</p>`, host.email);
     res.json({
       statusCode: 200,
       message: "Successfully created checkin",
@@ -160,6 +163,40 @@ app.post('/v1/escalations', function(req, res, next) {
     }
   });
 });
+
+var mailer = require('nodemailer');
+function sendMail(subject, content, receiver) {
+  let smtpConfig = {
+    host: '10.192.1.44',
+    port: 25,
+    auth: {
+      user: 'aopen\\hunter zhang',
+      pass: 'computer'
+    }
+  };
+
+  let transporter = mailer.createTransport(smtpConfig);
+  transporter.verify(function(error, success) {
+      if (error) {
+          console.log(error);
+      } else {
+      console.log('Server is ready to take our messages');
+      var message = {
+        from: 'VirtualReception@aopen.com',
+        to: receiver || 'hunterzhang@aopen.com',
+        subject: subject,
+        html: content
+      };
+      transporter.sendMail(message, function(err, info) {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log(info);
+        }
+      });
+    }
+  });
+}
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
