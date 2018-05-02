@@ -13,7 +13,8 @@ pipeline {
     }
     stage('Deliver') {
       steps {
-        sh 'npm start'
+        sh './jenkins/scripts/deliver.sh'
+        sh './jenkins/scripts/kill.sh'
       }
     }
   }
